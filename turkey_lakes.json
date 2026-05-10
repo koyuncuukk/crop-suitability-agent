@@ -3,108 +3,108 @@
     "name": "Van Gölü",
     "lat": 38.65,
     "lon": 43.0,
-    "radius": 0.55
+    "radius": 0.45
   },
   {
     "name": "Tuz Gölü",
-    "lat": 38.75,
-    "lon": 33.4,
-    "radius": 0.4
+    "lat": 38.78,
+    "lon": 33.32,
+    "radius": 0.22
   },
   {
     "name": "Beyşehir Gölü",
     "lat": 37.75,
-    "lon": 31.5,
-    "radius": 0.25
+    "lon": 31.55,
+    "radius": 0.18
   },
   {
     "name": "Eğirdir Gölü",
     "lat": 38.05,
-    "lon": 30.9,
-    "radius": 0.18
+    "lon": 30.88,
+    "radius": 0.12
   },
   {
     "name": "İznik Gölü",
     "lat": 40.43,
     "lon": 29.55,
-    "radius": 0.12
+    "radius": 0.08
   },
   {
     "name": "Sapanca Gölü",
     "lat": 40.71,
     "lon": 30.27,
-    "radius": 0.06
+    "radius": 0.04
   },
   {
     "name": "Manyas Gölü",
     "lat": 40.18,
     "lon": 27.97,
-    "radius": 0.08
+    "radius": 0.05
   },
   {
     "name": "Uluabat Gölü",
     "lat": 40.17,
     "lon": 28.65,
-    "radius": 0.08
+    "radius": 0.05
   },
   {
     "name": "Burdur Gölü",
     "lat": 37.72,
     "lon": 30.18,
-    "radius": 0.12
+    "radius": 0.08
   },
   {
     "name": "Acıgöl",
     "lat": 37.83,
     "lon": 29.88,
-    "radius": 0.08
+    "radius": 0.05
   },
   {
     "name": "Çıldır Gölü",
     "lat": 41.05,
     "lon": 43.27,
-    "radius": 0.08
+    "radius": 0.05
   },
   {
     "name": "Hazar Gölü",
     "lat": 38.5,
     "lon": 39.4,
-    "radius": 0.08
+    "radius": 0.05
   },
   {
     "name": "Salda Gölü",
     "lat": 37.55,
     "lon": 29.68,
-    "radius": 0.04
+    "radius": 0.03
   },
   {
     "name": "Atatürk Barajı",
     "lat": 37.5,
     "lon": 38.32,
-    "radius": 0.25
+    "radius": 0.18
   },
   {
     "name": "Keban Barajı",
     "lat": 38.8,
     "lon": 39.2,
-    "radius": 0.3
+    "radius": 0.2
   },
   {
     "name": "Karakaya Barajı",
     "lat": 38.23,
     "lon": 39.05,
-    "radius": 0.2
+    "radius": 0.12
   },
   {
     "name": "Hirfanlı Barajı",
-    "lat": 39.2,
+    "lat": 39.18,
     "lon": 33.55,
-    "radius": 0.2
+    "radius": 0.12
   },
   {
     "name": "Altınkaya Barajı",
     "lat": 41.2,
     "lon": 35.7,
-    "radius": 0.15
+    "radius": 0.1
   }
 ]
