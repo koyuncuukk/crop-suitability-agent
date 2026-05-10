@@ -47,18 +47,30 @@ def reverse_geocode(lat, lon):
     try:
         r = req.get(
             "https://nominatim.openstreetmap.org/reverse",
-            params={"lat": lat, "lon": lon, "format": "json", "accept-language": "tr"},
+            params={
+                "lat": lat, "lon": lon,
+                "format": "json",
+                "accept-language": "tr",
+                "zoom": 10,
+                "addressdetails": 1
+            },
             headers={"User-Agent": "CropAgent/1.0"},
             timeout=5
         )
         data = r.json()
         addr = data.get("address", {})
-        city    = addr.get("province") or addr.get("city") or addr.get("state") or ""
-        district = addr.get("county") or addr.get("district") or addr.get("suburb") or ""
-        if city and district:
+        # İlçe için öncelik: town > municipality > county
+        district = (addr.get("town") or addr.get("municipality") or 
+                    addr.get("county") or addr.get("district") or 
+                    addr.get("city_district") or "")
+        # İl için: province > state
+        city = addr.get("province") or addr.get("state") or addr.get("city") or ""
+        if city and district and city != district:
             location_name = f"{district}, {city}"
         elif city:
             location_name = city
+        elif district:
+            location_name = district
         else:
             location_name = f"{lat:.4f}, {lon:.4f}"
         return location_name
