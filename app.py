@@ -1,12 +1,19 @@
 
 import os
+import json
 from flask import Flask, request, jsonify, render_template
 import groq as groq_lib
+from shapely.geometry import shape, Point
 from tools.climate_tool import get_climate_data
 from tools.soil_tool import get_soil_data
 from tools.scoring_tool import calculate_suitability
 
 app = Flask(__name__)
+
+# Türkiye sınırını yükle
+with open("turkey_border.json", "r") as f:
+    turkey_geojson = json.load(f)
+TURKEY_SHAPE = shape(turkey_geojson["geometry"])
 
 CROP_REQUIREMENTS = {
     "wheat":     {"temp_min": 5,  "temp_max": 24, "precip_min": 300, "precip_max": 900,  "ph_min": 6.0, "ph_max": 7.5},
@@ -19,22 +26,10 @@ CROP_REQUIREMENTS = {
     "grape":     {"temp_min": 12, "temp_max": 28, "precip_min": 300, "precip_max": 700,  "ph_min": 5.5, "ph_max": 7.0},
 }
 
-def is_in_turkey(lat, lon):
-    """Nominatim ile gerçek Türkiye kontrolü"""
-    import requests as req
-    try:
-        r = req.get(
-            "https://nominatim.openstreetmap.org/reverse",
-            params={"lat": lat, "lon": lon, "format": "json"},
-            headers={"User-Agent": "CropAgent/1.0"},
-            timeout=5
-        )
-        data = r.json()
-        country = data.get("address", {}).get("country_code", "")
-        return country == "tr"
-    except:
-        # Fallback bbox kontrolü
-        return 35.8 <= lat <= 42.2 and 25.6 <= lon <= 44.8
+def is_on_land(lat, lon):
+    """Shapely ile gerçek kara/deniz kontrolü - Türkiye sınırı içinde mi?"""
+    point = Point(lon, lat)
+    return TURKEY_SHAPE.contains(point)
 
 @app.route("/")
 def index():
@@ -47,34 +42,21 @@ def analyze():
     lon  = float(data["longitude"])
     crop = data["crop"]
 
-    # Türkiye kontrolü
-    if not is_in_turkey(lat, lon):
+    # Kesin kara/deniz kontrolü
+    if not is_on_land(lat, lon):
         return jsonify({
             "suitability_score": 0,
-            "rating": "Not in Turkey",
+            "rating": "Sea / Outside Turkey",
             "avg_temp": "N/A",
             "annual_precip": "N/A",
             "soil_ph": "N/A",
             "factors": {"Temperature": 0, "Precipitation": 0, "Soil pH": 0},
-            "recommendation": "This location is outside Turkey. Please click inside Turkey borders.",
-            "location_name": "Outside Turkey"
+            "recommendation": "This location is in the sea or outside Turkey. Please click on Turkish land.",
+            "location_name": "Sea / Outside Turkey"
         })
 
     climate = get_climate_data(lat, lon)
     soil    = get_soil_data(lat, lon)
-
-    # Deniz kontrolü
-    if soil.get("is_sea", False):
-        return jsonify({
-            "suitability_score": 0,
-            "rating": "Sea / Water Body",
-            "avg_temp": climate["avg_temp"],
-            "annual_precip": climate["annual_precip"],
-            "soil_ph": "N/A",
-            "factors": {"Temperature": 0, "Precipitation": 0, "Soil pH": 0},
-            "recommendation": "This location is in the sea or a water body. Please click on land.",
-            "location_name": "Sea / Water"
-        })
 
     score = calculate_suitability(crop, climate["avg_temp"], climate["annual_precip"],
                                    soil["soil_ph"], CROP_REQUIREMENTS[crop])
