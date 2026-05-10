@@ -10,7 +10,6 @@ from tools.scoring_tool import calculate_suitability
 
 app = Flask(__name__)
 
-# Türkiye sınırını yükle
 with open("turkey_border.json", "r") as f:
     turkey_geojson = json.load(f)
 TURKEY_SHAPE = shape(turkey_geojson["geometry"])
@@ -27,9 +26,40 @@ CROP_REQUIREMENTS = {
 }
 
 def is_on_land(lat, lon):
-    """Shapely ile gerçek kara/deniz kontrolü - Türkiye sınırı içinde mi?"""
     point = Point(lon, lat)
     return TURKEY_SHAPE.contains(point)
+
+def reverse_geocode(lat, lon):
+    """Konum bilgisini ve su kütlesi olup olmadığını döndürür"""
+    import requests as req
+    try:
+        r = req.get(
+            "https://nominatim.openstreetmap.org/reverse",
+            params={"lat": lat, "lon": lon, "format": "json", "accept-language": "tr"},
+            headers={"User-Agent": "CropAgent/1.0"},
+            timeout=5
+        )
+        data = r.json()
+        addr = data.get("address", {})
+        is_water = (
+            "water" in str(data.get("type", "")).lower() or
+            "lake" in str(data.get("type", "")).lower() or
+            addr.get("body_of_water") is not None or
+            addr.get("water") is not None or
+            "Gölü" in str(data.get("display_name", "")) or
+            "Baraj" in str(data.get("display_name", ""))
+        )
+        city    = addr.get("province") or addr.get("city") or addr.get("state") or ""
+        district = addr.get("county") or addr.get("district") or addr.get("suburb") or ""
+        if city and district:
+            location_name = f"{district}, {city}"
+        elif city:
+            location_name = city
+        else:
+            location_name = data.get("display_name", f"{lat:.4f}, {lon:.4f}").split(",")[0]
+        return {"is_water": is_water, "location_name": location_name}
+    except:
+        return {"is_water": False, "location_name": f"{lat:.4f}, {lon:.4f}"}
 
 @app.route("/")
 def index():
@@ -42,7 +72,7 @@ def analyze():
     lon  = float(data["longitude"])
     crop = data["crop"]
 
-    # Kesin kara/deniz kontrolü
+    # Türkiye sınırı kontrolü
     if not is_on_land(lat, lon):
         return jsonify({
             "suitability_score": 0,
@@ -55,31 +85,26 @@ def analyze():
             "location_name": "Sea / Outside Turkey"
         })
 
+    # Geocode + su kontrolü
+    geo = reverse_geocode(lat, lon)
+
+    if geo["is_water"]:
+        return jsonify({
+            "suitability_score": 0,
+            "rating": "Lake / Water Body",
+            "avg_temp": "N/A",
+            "annual_precip": "N/A",
+            "soil_ph": "N/A",
+            "factors": {"Temperature": 0, "Precipitation": 0, "Soil pH": 0},
+            "recommendation": "This location is a lake or water body (no agricultural land). Please click on land.",
+            "location_name": geo["location_name"]
+        })
+
     climate = get_climate_data(lat, lon)
     soil    = get_soil_data(lat, lon)
 
     score = calculate_suitability(crop, climate["avg_temp"], climate["annual_precip"],
                                    soil["soil_ph"], CROP_REQUIREMENTS[crop])
-
-    # Konum adı al
-    import requests as req
-    location_name = f"{lat:.4f}, {lon:.4f}"
-    try:
-        r = req.get(
-            "https://nominatim.openstreetmap.org/reverse",
-            params={"lat": lat, "lon": lon, "format": "json", "accept-language": "tr"},
-            headers={"User-Agent": "CropAgent/1.0"},
-            timeout=5
-        )
-        addr = r.json().get("address", {})
-        city    = addr.get("province") or addr.get("city") or addr.get("state") or ""
-        district = addr.get("county") or addr.get("district") or addr.get("suburb") or ""
-        if city and district:
-            location_name = f"{district}, {city}"
-        elif city:
-            location_name = city
-    except:
-        pass
 
     api_key = os.environ.get("GROQ_API_KEY", "")
     client  = groq_lib.Groq(api_key=api_key)
@@ -88,7 +113,7 @@ def analyze():
         messages=[
             {"role": "system", "content": "You are a GeoAI agricultural expert agent."},
             {"role": "user", "content": f"""Analyze and give a 3-4 sentence practical recommendation.
-Crop: {crop} | Location: {location_name} ({lat:.4f}, {lon:.4f})
+Crop: {crop} | Location: {geo["location_name"]} ({lat:.4f}, {lon:.4f})
 Temperature: {climate["avg_temp"]}C | Precipitation: {climate["annual_precip"]}mm | Soil pH: {soil["soil_ph"]}
 Suitability Score: {score["suitability_score"]}/100 | Rating: {score["rating"]}
 Factors: {score["factors"]}"""}
@@ -103,7 +128,7 @@ Factors: {score["factors"]}"""}
         "soil_ph":           soil["soil_ph"],
         "factors":           score["factors"],
         "recommendation":    response.choices[0].message.content,
-        "location_name":     location_name
+        "location_name":     geo["location_name"]
     })
 
 if __name__ == "__main__":
