@@ -11,7 +11,7 @@ def get_soil_data(latitude, longitude):
                 v = d.get("values", {}).get("mean")
                 if v: ph_vals.append(v/10)
         if not ph_vals:
-            return {"soil_ph": 6.5, "is_sea": True}
+            return {"soil_ph": None, "is_sea": True}
         return {"soil_ph": round(sum(ph_vals)/len(ph_vals), 1), "is_sea": False}
     except:
-        return {"soil_ph": 6.5, "is_sea": True}
+        return {"soil_ph": None, "is_sea": True}

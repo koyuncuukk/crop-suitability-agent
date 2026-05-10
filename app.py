@@ -33,16 +33,29 @@ def analyze():
     climate = get_climate_data(lat, lon)
     soil    = get_soil_data(lat, lon)
 
+    # Sadece açık deniz/okyanus kontrolü (Türkiye iç suları hariç)
     if soil.get("is_sea", False):
-        return jsonify({
-            "suitability_score": 0,
-            "rating": "Not Suitable",
-            "avg_temp": climate["avg_temp"],
-            "annual_precip": climate["annual_precip"],
-            "soil_ph": "N/A",
-            "factors": {"Temperature": 0, "Precipitation": 0, "Soil pH": 0},
-            "recommendation": "This location appears to be in the sea or ocean. Please click on a land area to analyze agricultural suitability."
-        })
+        # Koordinat bazlı Türkiye kara kontrolü
+        # Boğaz, Haliç, göller için tolerans tanı
+        is_open_sea = (
+            (lat > 41.5 and lon < 29.5) or   # Karadeniz kuzeyi
+            (lat < 37.0 and lon < 27.0) or   # Ege güneyi
+            (lat < 36.5)                      # Akdeniz güneyi
+        )
+        if is_open_sea:
+            return jsonify({
+                "suitability_score": 0,
+                "rating": "Not Suitable — Sea/Ocean",
+                "avg_temp": climate["avg_temp"],
+                "annual_precip": climate["annual_precip"],
+                "soil_ph": "N/A",
+                "factors": {"Temperature": 0, "Precipitation": 0, "Soil pH": 0},
+                "recommendation": "This location is in the sea or ocean. Please click on a land area in Turkey."
+            })
+        else:
+            # Boğaz, Haliç, göl gibi iç su alanları — neutral pH kullan
+            soil["soil_ph"] = 6.8
+            soil["is_sea"] = False
 
     score = calculate_suitability(crop, climate["avg_temp"], climate["annual_precip"],
                                    soil["soil_ph"], CROP_REQUIREMENTS[crop])
