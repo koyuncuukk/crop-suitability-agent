@@ -24,6 +24,7 @@
   .score-num { font-size: 48px; font-weight: 700; color: #69f0ae; line-height: 1; }
   .score-label { font-size: 10px; color: #81c784; text-transform: uppercase; letter-spacing: 1px; }
   .rating { font-size: 15px; margin-top: 6px; }
+  .location-badge { background: #0f1a14; border: 1px solid #2d5a3d; border-radius: 8px; padding: 8px 12px; font-size: 13px; color: #69f0ae; margin-bottom: 10px; text-align: center; display: none; }
   .metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
   .metric { background: #0f1a14; border-radius: 8px; padding: 8px; text-align: center; }
   .metric-val { font-size: 16px; font-weight: 700; color: #69f0ae; }
@@ -33,7 +34,6 @@
   .bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
   .rec-box { background: #0f1a14; border-left: 3px solid #43a047; border-radius: 0 8px 8px 0; padding: 10px; font-size: 12px; line-height: 1.6; color: #c8e6c9; margin-top: 10px; }
   .info-tip { background: #162619; border: 1px solid #2d5a3d; border-radius: 8px; padding: 10px; font-size: 12px; color: #81c784; margin-bottom: 10px; }
-  .warning { background: #3e1a1a; border: 1px solid #8b2020; border-radius: 8px; padding: 10px; font-size: 12px; color: #ef9a9a; margin-bottom: 10px; display: none; }
   .spinner { text-align: center; padding: 16px; color: #81c784; display: none; }
   hr { border-color: #2d5a3d; margin: 10px 0; }
 </style>
@@ -60,8 +60,8 @@
       <option value="grape">🍇 Grape</option>
     </select>
     <button id="analyzeBtn" disabled onclick="analyze()">🤖 Run AI Agent Analysis</button>
-    <div class="info-tip" id="tip">👆 Click on Turkey to select a location</div>
-    <div class="warning" id="warning">⚠️ Please click inside Turkey!</div>
+    <div class="info-tip" id="tip">👆 Click anywhere in Turkey</div>
+    <div class="location-badge" id="locationBadge">📍 —</div>
     <div class="spinner" id="spinner">⏳ Agent analyzing...</div>
     <div class="result" id="result">
       <div class="score-big" id="scoreBig">
@@ -99,24 +99,36 @@
   var marker = null;
   var selLat = null, selLon = null;
 
-  function isInTurkey(lat, lon) {
-    return lat >= 35.8 && lat <= 42.2 && lon >= 25.6 && lon <= 44.8;
-  }
-
   map.on("click", function(e) {
-    var lat = e.latlng.lat;
-    var lon = e.latlng.lng;
-    if (!isInTurkey(lat, lon)) {
-      document.getElementById("warning").style.display = "block";
-      setTimeout(() => document.getElementById("warning").style.display = "none", 2500);
-      return;
-    }
-    selLat = lat; selLon = lon;
-    document.getElementById("warning").style.display = "none";
+    selLat = e.latlng.lat;
+    selLon = e.latlng.lng;
     if (marker) map.removeLayer(marker);
     marker = L.marker([selLat, selLon]).addTo(map);
     document.getElementById("tip").innerHTML = "📍 " + selLat.toFixed(4) + ", " + selLon.toFixed(4);
     document.getElementById("analyzeBtn").disabled = false;
+    document.getElementById("locationBadge").style.display = "none";
+
+    // Reverse geocode ile il/ilçe göster
+    fetch("https://nominatim.openstreetmap.org/reverse?lat=" + selLat + "&lon=" + selLon + "&format=json&accept-language=tr")
+      .then(r => r.json())
+      .then(data => {
+        var addr = data.address || {};
+        var country = addr.country || "";
+        var city = addr.province || addr.city || addr.state || "";
+        var district = addr.county || addr.district || addr.suburb || "";
+        var badge = document.getElementById("locationBadge");
+        badge.style.display = "block";
+        if (addr.country_code !== "tr") {
+          badge.style.color = "#ef9a9a";
+          badge.innerHTML = "⚠️ " + country + " — Outside Turkey!";
+        } else if (!city) {
+          badge.style.color = "#80cbc4";
+          badge.innerHTML = "🌊 Sea / Water Body";
+        } else {
+          badge.style.color = "#69f0ae";
+          badge.innerHTML = "📍 " + (district ? district + ", " : "") + city;
+        }
+      }).catch(() => {});
   });
 
   function analyze() {
@@ -148,6 +160,13 @@
       document.getElementById("precipVal").textContent = data.annual_precip;
       document.getElementById("phVal").textContent = data.soil_ph;
 
+      if (data.location_name) {
+        var badge = document.getElementById("locationBadge");
+        badge.style.display = "block";
+        badge.style.color = "#69f0ae";
+        badge.innerHTML = "📍 " + data.location_name;
+      }
+
       var fhtml = "";
       var icons = {Temperature:"🌡️", Precipitation:"🌧️", "Soil pH":"🌱"};
       for (var k in data.factors) {
@@ -157,7 +176,7 @@
       }
       document.getElementById("factors").innerHTML = fhtml;
       document.getElementById("recBox").textContent = data.recommendation;
-      if (marker) marker.bindPopup(crop + ": " + score + "/100").openPopup();
+      if (marker) marker.bindPopup((data.location_name || crop) + ": " + score + "/100").openPopup();
     })
     .catch(err => {
       document.getElementById("spinner").style.display = "none";
