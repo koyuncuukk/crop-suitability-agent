@@ -10,6 +10,8 @@ def get_soil_data(latitude, longitude):
             for d in layer.get("depths", []):
                 v = d.get("values", {}).get("mean")
                 if v: ph_vals.append(v/10)
-        return {"soil_ph": round(sum(ph_vals)/len(ph_vals), 1) if ph_vals else 6.5}
+        if not ph_vals:
+            return {"soil_ph": 6.5, "is_sea": True}
+        return {"soil_ph": round(sum(ph_vals)/len(ph_vals), 1), "is_sea": False}
     except:
-        return {"soil_ph": 6.5}
+        return {"soil_ph": 6.5, "is_sea": True}

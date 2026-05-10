@@ -1,6 +1,5 @@
 
-import os
-import json
+import os, json
 from flask import Flask, request, jsonify, render_template
 import groq as groq_lib
 from tools.climate_tool import get_climate_data
@@ -33,8 +32,20 @@ def analyze():
 
     climate = get_climate_data(lat, lon)
     soil    = get_soil_data(lat, lon)
-    score   = calculate_suitability(crop, climate["avg_temp"], climate["annual_precip"],
-                                     soil["soil_ph"], CROP_REQUIREMENTS[crop])
+
+    if soil.get("is_sea", False):
+        return jsonify({
+            "suitability_score": 0,
+            "rating": "Not Suitable",
+            "avg_temp": climate["avg_temp"],
+            "annual_precip": climate["annual_precip"],
+            "soil_ph": "N/A",
+            "factors": {"Temperature": 0, "Precipitation": 0, "Soil pH": 0},
+            "recommendation": "This location appears to be in the sea or ocean. Please click on a land area to analyze agricultural suitability."
+        })
+
+    score = calculate_suitability(crop, climate["avg_temp"], climate["annual_precip"],
+                                   soil["soil_ph"], CROP_REQUIREMENTS[crop])
 
     api_key = os.environ.get("GROQ_API_KEY", "")
     client  = groq_lib.Groq(api_key=api_key)
@@ -42,7 +53,7 @@ def analyze():
         model="llama-3.1-8b-instant",
         messages=[
             {"role": "system", "content": "You are a GeoAI agricultural expert agent."},
-            {"role": "user",   "content": f"""Analyze and give a 3-4 sentence practical recommendation.
+            {"role": "user", "content": f"""Analyze and give a 3-4 sentence practical recommendation.
 Crop: {crop} | Location: {lat:.4f}, {lon:.4f}
 Temperature: {climate["avg_temp"]}C | Precipitation: {climate["annual_precip"]}mm | Soil pH: {soil["soil_ph"]}
 Suitability Score: {score["suitability_score"]}/100 | Rating: {score["rating"]}
