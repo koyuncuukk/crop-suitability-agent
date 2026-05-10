@@ -9,42 +9,41 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: "Segoe UI", sans-serif; background: #0f1a14; color: #e8f5e9; }
-  header { background: linear-gradient(135deg, #1b5e20, #2e7d32); padding: 20px 32px; display: flex; align-items: center; gap: 12px; }
+  header { background: linear-gradient(135deg, #1b5e20, #2e7d32); padding: 16px 32px; display: flex; align-items: center; gap: 12px; }
   header h1 { font-size: 22px; }
   header p { font-size: 13px; opacity: 0.8; margin-top: 2px; }
-  .container { display: grid; grid-template-columns: 320px 1fr; height: calc(100vh - 72px); }
-  .sidebar { background: #1a2e1f; padding: 20px; overflow-y: auto; border-right: 1px solid #2d5a3d; }
-  .sidebar h3 { color: #81c784; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
-  select { width: 100%; background: #0f1a14; color: #e8f5e9; border: 1px solid #2d5a3d; border-radius: 8px; padding: 10px; font-size: 14px; margin-bottom: 16px; }
-  button { width: 100%; background: linear-gradient(135deg, #2e7d52, #43a047); color: white; border: none; border-radius: 10px; padding: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 16px; }
-  button:hover { opacity: 0.9; }
+  .container { display: grid; grid-template-columns: 300px 1fr; height: calc(100vh - 64px); }
+  .sidebar { background: #1a2e1f; padding: 16px; overflow-y: auto; border-right: 1px solid #2d5a3d; }
+  .sidebar h3 { color: #81c784; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  select { width: 100%; background: #0f1a14; color: #e8f5e9; border: 1px solid #2d5a3d; border-radius: 8px; padding: 10px; font-size: 14px; margin-bottom: 12px; }
+  button { width: 100%; background: linear-gradient(135deg, #2e7d52, #43a047); color: white; border: none; border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 12px; }
   button:disabled { opacity: 0.5; cursor: not-allowed; }
-  #map { width: 100%; height: 100%; }
-  .result { background: #162619; border: 1px solid #2d5a3d; border-radius: 12px; padding: 16px; margin-top: 12px; display: none; }
-  .score-big { text-align: center; padding: 16px; border-radius: 10px; margin-bottom: 12px; }
-  .score-num { font-size: 52px; font-weight: 700; color: #69f0ae; line-height: 1; }
-  .score-label { font-size: 11px; color: #81c784; text-transform: uppercase; letter-spacing: 1px; }
-  .rating { font-size: 16px; margin-top: 6px; }
-  .metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-  .metric { background: #0f1a14; border-radius: 8px; padding: 10px; text-align: center; }
-  .metric-val { font-size: 18px; font-weight: 700; color: #69f0ae; }
-  .metric-lbl { font-size: 10px; color: #81c784; text-transform: uppercase; }
-  .factor { margin: 6px 0; display: flex; align-items: center; gap: 8px; font-size: 13px; }
-  .bar-bg { flex: 1; background: #2d5a3d; border-radius: 4px; height: 14px; }
+  #map { width: 100%; height: 100%; background: #0f1a14; }
+  .result { background: #162619; border: 1px solid #2d5a3d; border-radius: 12px; padding: 12px; margin-top: 8px; display: none; }
+  .score-big { text-align: center; padding: 14px; border-radius: 10px; margin-bottom: 10px; }
+  .score-num { font-size: 48px; font-weight: 700; color: #69f0ae; line-height: 1; }
+  .score-label { font-size: 10px; color: #81c784; text-transform: uppercase; letter-spacing: 1px; }
+  .rating { font-size: 15px; margin-top: 6px; }
+  .metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+  .metric { background: #0f1a14; border-radius: 8px; padding: 8px; text-align: center; }
+  .metric-val { font-size: 16px; font-weight: 700; color: #69f0ae; }
+  .metric-lbl { font-size: 9px; color: #81c784; text-transform: uppercase; }
+  .factor { margin: 5px 0; display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  .bar-bg { flex: 1; background: #2d5a3d; border-radius: 4px; height: 12px; }
   .bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
-  .rec-box { background: #0f1a14; border-left: 3px solid #43a047; border-radius: 0 8px 8px 0; padding: 12px; font-size: 13px; line-height: 1.6; color: #c8e6c9; margin-top: 12px; }
-  .info-tip { background: #162619; border: 1px solid #2d5a3d; border-radius: 8px; padding: 12px; font-size: 12px; color: #81c784; margin-bottom: 12px; }
-  .spinner { text-align: center; padding: 20px; color: #81c784; display: none; }
-  hr { border-color: #2d5a3d; margin: 12px 0; }
-  .warning { background: #3e1a1a; border: 1px solid #8b2020; border-radius: 8px; padding: 12px; font-size: 12px; color: #ef9a9a; margin-bottom: 12px; display: none; }
+  .rec-box { background: #0f1a14; border-left: 3px solid #43a047; border-radius: 0 8px 8px 0; padding: 10px; font-size: 12px; line-height: 1.6; color: #c8e6c9; margin-top: 10px; }
+  .info-tip { background: #162619; border: 1px solid #2d5a3d; border-radius: 8px; padding: 10px; font-size: 12px; color: #81c784; margin-bottom: 10px; }
+  .warning { background: #3e1a1a; border: 1px solid #8b2020; border-radius: 8px; padding: 10px; font-size: 12px; color: #ef9a9a; margin-bottom: 10px; display: none; }
+  .spinner { text-align: center; padding: 16px; color: #81c784; display: none; }
+  hr { border-color: #2d5a3d; margin: 10px 0; }
 </style>
 </head>
 <body>
 <header>
-  <div style="font-size:28px;">🌾</div>
+  <div style="font-size:26px;">🌾</div>
   <div>
     <h1>AI Crop Suitability Agent</h1>
-    <p>GeoAI-powered agricultural land analysis — Turkey</p>
+    <p>GeoAI-powered agricultural analysis — Turkey</p>
   </div>
 </header>
 <div class="container">
@@ -61,8 +60,8 @@
       <option value="grape">🍇 Grape</option>
     </select>
     <button id="analyzeBtn" disabled onclick="analyze()">🤖 Run AI Agent Analysis</button>
-    <div class="info-tip" id="tip">👆 Click anywhere in Turkey to select a location</div>
-    <div class="warning" id="warning">⚠️ Please click inside Turkey borders only!</div>
+    <div class="info-tip" id="tip">👆 Click on Turkey to select a location</div>
+    <div class="warning" id="warning">⚠️ Please click inside Turkey!</div>
     <div class="spinner" id="spinner">⏳ Agent analyzing...</div>
     <div class="result" id="result">
       <div class="score-big" id="scoreBig">
@@ -76,7 +75,7 @@
         <div class="metric"><div class="metric-val" id="phVal">—</div><div class="metric-lbl">Soil pH</div></div>
       </div>
       <hr>
-      <h3 style="margin-bottom:8px;">📊 Factor Scores</h3>
+      <h3 style="margin-bottom:6px;">📊 Factor Scores</h3>
       <div id="factors"></div>
       <div class="rec-box" id="recBox"></div>
     </div>
@@ -84,40 +83,58 @@
   <div id="map"></div>
 </div>
 <script>
-  // Türkiye sınır kutusu
-  var turkeyBounds = L.latLngBounds(
-    L.latLng(35.8, 25.6),
-    L.latLng(42.2, 44.8)
-  );
+  var turkeyBounds = L.latLngBounds(L.latLng(35.5, 25.0), L.latLng(42.5, 45.5));
 
   var map = L.map("map", {
     maxBounds: turkeyBounds,
     maxBoundsViscosity: 1.0,
     minZoom: 5,
-    maxZoom: 15
+    maxZoom: 15,
+    zoomControl: true
   }).setView([39.0, 35.0], 6);
 
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-    attribution: "CartoDB | OpenStreetMap",
-    bounds: turkeyBounds
-  }).addTo(map);
+  // Tamamen siyah arka plan — tile yok
+  // Sadece Türkiye GeoJSON ile çizilecek
 
-  // Türkiye GeoJSON sınırları çiz
+  var turkeyGeoJSON = null;
+
   fetch("https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson")
     .then(r => r.json())
     .then(data => {
       var turkey = data.features.find(f => f.properties.ISO_A2 === "TR");
       if (turkey) {
+        turkeyGeoJSON = turkey;
+
+        // Türkiye içini açık renkle doldur
         L.geoJSON(turkey, {
-          style: { color: "#43a047", weight: 2, fillOpacity: 0, dashArray: "5,5" }
+          style: {
+            color: "#69f0ae",
+            weight: 2,
+            fillColor: "#1a3a2a",
+            fillOpacity: 1
+          }
+        }).addTo(map);
+
+        // Türkiye üzerine OSM tile sadece Türkiye sınırları içinde
+        L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+          bounds: turkeyBounds,
+          opacity: 0.9
+        }).addTo(map);
+
+        // Türkiye sınırını tekrar üste çiz (tile üstünde görünsün)
+        L.geoJSON(turkey, {
+          style: {
+            color: "#69f0ae",
+            weight: 2.5,
+            fillOpacity: 0
+          }
         }).addTo(map);
       }
-    }).catch(() => {});
+    });
 
   var marker = null;
   var selLat = null, selLon = null;
 
-  // Türkiye koordinat kontrolü (basit poligon)
   function isInTurkey(lat, lon) {
     return lat >= 35.8 && lat <= 42.2 && lon >= 25.6 && lon <= 44.8;
   }
@@ -125,20 +142,16 @@
   map.on("click", function(e) {
     var lat = e.latlng.lat;
     var lon = e.latlng.lng;
-
     if (!isInTurkey(lat, lon)) {
       document.getElementById("warning").style.display = "block";
-      setTimeout(() => document.getElementById("warning").style.display = "none", 3000);
+      setTimeout(() => document.getElementById("warning").style.display = "none", 2500);
       return;
     }
-
-    selLat = lat;
-    selLon = lon;
+    selLat = lat; selLon = lon;
     document.getElementById("warning").style.display = "none";
-
     if (marker) map.removeLayer(marker);
     marker = L.marker([selLat, selLon]).addTo(map);
-    document.getElementById("tip").innerHTML = "📍 " + selLat.toFixed(4) + ", " + selLon.toFixed(4) + " — Ready!";
+    document.getElementById("tip").innerHTML = "📍 " + selLat.toFixed(4) + ", " + selLon.toFixed(4);
     document.getElementById("analyzeBtn").disabled = false;
   });
 
@@ -172,15 +185,14 @@
       document.getElementById("phVal").textContent = data.soil_ph;
 
       var fhtml = "";
-      var icons = {Temperature: "🌡️", Precipitation: "🌧️", "Soil pH": "🌱"};
+      var icons = {Temperature:"🌡️", Precipitation:"🌧️", "Soil pH":"🌱"};
       for (var k in data.factors) {
         var v = data.factors[k];
         var fc = v>=70 ? "#2e7d32" : v>=40 ? "#f57f17" : "#b71c1c";
-        fhtml += "<div class='factor'><span style='width:110px'>" + icons[k] + " " + k + "</span><div class='bar-bg'><div class='bar-fill' style='width:" + v + "%;background:" + fc + "'></div></div><span>" + v + "</span></div>";
+        fhtml += "<div class='factor'><span style='width:105px'>" + icons[k] + " " + k + "</span><div class='bar-bg'><div class='bar-fill' style='width:" + v + "%;background:" + fc + "'></div></div><span>" + v + "</span></div>";
       }
       document.getElementById("factors").innerHTML = fhtml;
       document.getElementById("recBox").textContent = data.recommendation;
-
       if (marker) marker.bindPopup(crop + ": " + score + "/100").openPopup();
     })
     .catch(err => {
